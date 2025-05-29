@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rejeitos de Mineração em Minas Gerais: Análise Centenária</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Visualization & Content Choices:
+        - Introdução: Report title and executive summary. Goal: Context. Method: Text.
+        - Visão Geral: Key total figures (historical & future). Goal: Inform. Method: Highlighted text/cards.
+        - Geração Histórica: Bar chart for tailings per decade (Table 1), showing ranges. Pie chart for main mineral contributions. Goal: Compare, Inform. Method: Chart.js bar and pie charts, textual summary. Interaction: Tooltips. Justification: Visual representation of trends and proportions.
+        - Projeção Futura: Grouped bar chart for scenarios (Table 3). Textual summary of mineral contributions. Goal: Compare, Inform. Method: Chart.js grouped bar chart, textual summary. Interaction: Tooltips. Justification: Clear comparison of future scenarios.
+        - Fatores Chave: Static cards for each factor (Volume, Teores, Tecnologia, Gestão, Economia Circular, Regulatório). Goal: Explain. Method: HTML/CSS cards. Textual summaries based on Section 5. Justification: Breaks down complex influencing factors.
+        - Conclusões: Key takeaways and outlook from Section 6. Goal: Summarize. Method: Text.
+        - Fontes: List of cited sources from the report. Goal: Reference, Transparency. Method: Text (HTML list).
+        - All charts use Chart.js (Canvas), adhering to NO SVG/Mermaid. Textual content is summarized from the report.
+    -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px; 
+            max-height: 450px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .nav-link {
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #0D9488; /* teal-600 */
+        }
+        .active-nav-link {
+            color: #0D9488; /* teal-600 */
+            font-weight: 600;
+        }
+        .section-title {
+            border-bottom: 2px solid #F59E0B; /* amber-500 */
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .card {
+            background-color: #FFFFFF;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            padding: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .metric-card {
+            background-color: #FFFFFF; 
+            border-left: 5px solid #0D9488; 
+        }
+        .source-item {
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        .source-item::before {
+            content: "▪";
+            position: absolute;
+            left: 0;
+            color: #F59E0B; /* amber-500 */
+        }
+    </style>
+</head>
+<body class="bg-stone-100 text-stone-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 flex flex-wrap justify-between items-center">
+            <div class="text-xl font-bold text-teal-700">Rejeitos MG</div>
+            <button id="nav-toggle" class="md:hidden text-stone-700 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+            <ul id="nav-menu" class="md:flex space-x-0 md:space-x-8 hidden w-full md:w-auto mt-4 md:mt-0">
+                <li><a href="#introducao" class="nav-link block py-2 md:py-0 text-stone-700 hover:text-teal-600">Introdução</a></li>
+                <li><a href="#visao-geral" class="nav-link block py-2 md:py-0 text-stone-700 hover:text-teal-600">Visão Geral</a></li>
+                <li><a href="#historico" class="nav-link block py-2 md:py-0 text-stone-700 hover:text-teal-600">Geração Histórica</a></li>
+                <li><a href="#futuro" class="nav-link block py-2 md:py-0 text-stone-700 hover:text-teal-600">Projeção Futura</a></li>
+                <li><a href="#fatores" class="nav-link block py-2 md:py-0 text-stone-700 hover:text-teal-600">Fatores Chave</a></li>
+                <li><a href="#conclusoes" class="nav-link block py-2 md:py-0 text-stone-700 hover:text-teal-600">Conclusões</a></li>
+                <li><a href="#fontes" class="nav-link block py-2 md:py-0 text-stone-700 hover:text-teal-600">Fontes</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-8">
+
+        <section id="introducao" class="mb-12 pt-16 -mt-16">
+            <h1 class="text-3xl md:text-4xl font-bold text-teal-700 mb-6 text-center">Geração Histórica e Projeções Futuras de Rejeitos de Mineração em Minas Gerais</h1>
+            <p class="text-lg text-stone-700 mb-4 leading-relaxed text-center max-w-3xl mx-auto">
+                Esta aplicação explora a quantificação de rejeitos de mineração em Minas Gerais nos últimos 50 anos (c. 1974-2024) e projeta os volumes para os próximos 50 anos (c. 2025-2075). O objetivo é apresentar de forma interativa os dados e análises do relatório, facilitando a compreensão deste complexo desafio.
+            </p>
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold text-teal-600 mb-3 section-title">Sumário Executivo do Relatório</h2>
+                <p class="text-stone-700 leading-relaxed">
+                    Minas Gerais enfrenta um desafio monumental na gestão de rejeitos de mineração. Estimativas indicam bilhões de toneladas geradas no passado e volumes potencialmente maiores no futuro. O minério de ferro é o principal contribuinte, mas minerais de transição energética podem alterar o perfil futuro. Fatores como volume de produção, teor de minério, tecnologia e regulação são cruciais. A magnitude dos volumes sublinha a criticidade da gestão de rejeitos para a sustentabilidade da mineração no estado.
+                </p>
+            </div>
+        </section>
+
+        <section id="visao-geral" class="mb-12 pt-16 -mt-16">
+            <h2 class="text-2xl md:text-3xl font-semibold text-teal-600 mb-6 section-title">Visão Geral dos Volumes de Rejeitos</h2>
+            <p class="text-stone-700 mb-8 leading-relaxed">
+                Esta seção apresenta uma visão consolidada dos volumes totais de rejeitos de mineração estimados para o período histórico e projetados para o futuro em Minas Gerais, conforme detalhado no relatório. Estes números destacam a escala do desafio da gestão de rejeitos no estado.
+            </p>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="metric-card p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold text-amber-600 mb-2">Geração Histórica Estimada (c. 1974-2024)</h3>
+                    <p class="text-3xl font-bold text-stone-800">11,8 a 17,5</p>
+                    <p class="text-stone-600">Bilhões de Toneladas</p>
+                    <p class="text-sm text-stone-500 mt-2">Predominantemente de minério de ferro.</p>
+                </div>
+                <div class="metric-card p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold text-amber-600 mb-2">Projeção Futura Estimada (c. 2025-2075)</h3>
+                    <p class="text-3xl font-bold text-stone-800">6 a 16</p>
+                    <p class="text-stone-600">Bilhões de Toneladas Adicionais</p>
+                    <p class="text-sm text-stone-500 mt-2">Varia conforme cenários de demanda e tecnologia.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="historico" class="mb-12 pt-16 -mt-16">
+            <h2 class="text-2xl md:text-3xl font-semibold text-teal-600 mb-6 section-title">Geração Histórica de Rejeitos (c. 1974-2024)</h2>
+            <p class="text-stone-700 mb-8 leading-relaxed">
+                A análise histórica revela a evolução da geração de rejeitos ao longo de cinco décadas. A metodologia para estas estimativas baseia-se em dados de produção mineral e fatores de geração, com incertezas inerentes, especialmente para os períodos mais antigos. O minério de ferro é o principal contribuinte, mas outros minerais também desempenham um papel significativo.
+            </p>
+            <div class="grid md:grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="card">
+                    <h3 class="text-xl font-semibold text-amber-600 mb-4">Estimativa de Rejeitos Totais por Década (Milhões de Toneladas)</h3>
+                    <div class="chart-container">
+                        <canvas id="historicalTailingsChart"></canvas>
+                    </div>
+                    <p class="text-sm text-stone-500 mt-3 text-center">Fonte: Tabela 1 do Relatório. As barras representam a faixa de estimativa (mínimo e máximo).</p>
+                </div>
+                <div class="card">
+                    <h3 class="text-xl font-semibold text-amber-600 mb-4">Contribuição Estimada por Mineral (Total c. 1974-2024)</h3>
+                     <div class="chart-container" style="max-height: 350px;"> <canvas id="historicalMineralContributionChart"></canvas>
+                    </div>
+                    <p class="text-sm text-stone-500 mt-3 text-center">Fonte: Tabela 1 do Relatório (valores médios da faixa para visualização).</p>
+                </div>
+            </div>
+             <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold text-teal-600 mb-3">Contexto e Pontos de Dados</h3>
+                <p class="text-stone-700 leading-relaxed mb-2">
+                    A quantificação histórica é desafiadora devido à limitação de dados diretos, especialmente antes dos anos 2000.
+                    Pontos de referência importantes incluem:
+                </p>
+                <ul class="list-disc list-inside text-stone-700 space-y-1">
+                    <li><strong>IPEA (2008/2009):</strong> Minas Gerais gerou 101,5 Mt (2008) e 123,1 Mt (2009) de rejeitos.</li>
+                    <li><strong>SEMAD (2022):</strong> Geração de 67,2 Mt de rejeitos do beneficiamento de minério.</li>
+                </ul>
+                <p class="text-stone-700 leading-relaxed mt-2">
+                    Essas variações podem dever-se a flutuações na mineração, mudanças no mix de commodities, melhorias de processo ou diferenças metodológicas.
+                </p>
+            </div>
+        </section>
+
+        <section id="futuro" class="mb-12 pt-16 -mt-16">
+            <h2 class="text-2xl md:text-3xl font-semibold text-teal-600 mb-6 section-title">Projeção da Geração Futura de Rejeitos (c. 2025-2075)</h2>
+            <p class="text-stone-700 mb-8 leading-relaxed">
+                As projeções futuras são baseadas em cenários que consideram previsões de produção, grandes projetos, tendências de teor de minério e avanços tecnológicos. A demanda por minério de ferro deve continuar, e minerais de transição energética como lítio e nióbio ganharão importância, introduzindo novos perfis de rejeitos.
+            </p>
+             <div class="grid md:grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="card">
+                    <h3 class="text-xl font-semibold text-amber-600 mb-4">Projeção por Cenário (Bilhões de Toneladas)</h3>
+                    <div class="chart-container">
+                        <canvas id="futureTailingsChart"></canvas>
+                    </div>
+                     <p class="text-sm text-stone-500 mt-3 text-center">Fonte: Tabela 3 do Relatório. As barras representam a faixa de estimativa (mínimo e máximo) para cada cenário nos períodos 2025-2050 e 2051-2075.</p>
+                </div>
+                 <div class="card">
+                    <h3 class="text-xl font-semibold text-amber-600 mb-4">Principais Minerais Contribuintes Projetados</h3>
+                     <p class="text-stone-700 leading-relaxed mb-4">
+                        O minério de ferro continuará dominante. No entanto, a crescente demanda por minerais para transição energética, como lítio e nióbio, aumentará sua participação no volume total de rejeitos. Isso exigirá novas estratégias de gestão para esses tipos específicos de rejeitos.
+                    </p>
+                    <ul class="list-disc list-inside text-stone-700 space-y-2">
+                        <li><strong>Minério de Ferro:</strong> Continuará sendo o maior volume devido à escala de produção.</li>
+                        <li><strong>Lítio:</strong> Crescimento expressivo esperado, especialmente no Vale do Jequitinhonha.</li>
+                        <li><strong>Nióbio:</strong> Aumento da produção projetado para atender demandas globais.</li>
+                        <li><strong>Ouro, Fosfato, Bauxita:</strong> Contribuição contínua, sujeita a ciclos de mercado.</li>
+                    </ul>
+                     <p class="text-stone-700 leading-relaxed mt-4">
+                        Projetos como o Bloco 8 da SAM (1,51 Gt de rejeitos de minério de ferro) ilustram o potencial de geração de grandes volumes.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="fatores" class="mb-12 pt-16 -mt-16">
+            <h2 class="text-2xl md:text-3xl font-semibold text-teal-600 mb-6 section-title">Fatores Chave na Geração de Rejeitos</h2>
+            <p class="text-stone-700 mb-8 leading-relaxed">
+                A geração de rejeitos é influenciada por uma complexa interação de fatores, desde o volume de minério processado até as tecnologias empregadas e o arcabouço regulatório. Compreender esses fatores é essencial para planejar estratégias de mitigação e gestão sustentável.
+            </p>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="card">
+                    <h3 class="text-lg font-semibold text-amber-600 mb-2">Volume e Tipo de Produção Mineral</h3>
+                    <p class="text-sm text-stone-600">O volume bruto de minério extraído é o fator mais direto. A dominância histórica do minério de ferro em MG define o perfil principal dos rejeitos. A demanda por novos minerais (lítio, nióbio) altera esse perfil.</p>
+                </div>
+                <div class="card">
+                    <h3 class="text-lg font-semibold text-amber-600 mb-2">Teores de Minério e Mineralogia</h3>
+                    <p class="text-sm text-stone-600">A exploração de minérios com teores mais baixos aumenta a razão rejeito/produto. O "ciclo vicioso teor-tecnologia" descreve como avanços permitem processar minérios pobres, mas podem aumentar o volume absoluto de rejeitos.</p>
+                </div>
+                <div class="card">
+                    <h3 class="text-lg font-semibold text-amber-600 mb-2">Avanços Tecnológicos</h3>
+                    <p class="text-sm text-stone-600">Tecnologias podem tanto viabilizar minérios de baixo teor (aumentando rejeitos) quanto reduzir a geração na fonte (ex: processamento a seco, recuperação de finos) e melhorar a disposição (pilhas de rejeito filtrado).</p>
+                </div>
+                <div class="card">
+                    <h3 class="text-lg font-semibold text-amber-600 mb-2">Práticas de Gestão e Disposição</h3>
+                    <p class="text-sm text-stone-600">A evolução para métodos mais seguros, como disposição a seco (dry stacking) e descaracterização de barragens a montante, é uma resposta a desastres e regulações mais rígidas.</p>
+                </div>
+                <div class="card">
+                    <h3 class="text-lg font-semibold text-amber-600 mb-2">Economia Circular e Reaproveitamento</h3>
+                    <p class="text-sm text-stone-600">Iniciativas para reprocessar e reaproveitar rejeitos (ex: "Areia Sustentável", uso em construção) buscam transformar passivos em ativos, mas enfrentam desafios de viabilidade econômica em larga escala.</p>
+                </div>
+                <div class="card">
+                    <h3 class="text-lg font-semibold text-amber-600 mb-2">Arcabouço Regulatório e Licenciamento</h3>
+                    <p class="text-sm text-stone-600">Leis como a Política Nacional de Segurança de Barragens e resoluções da ANM, mais rigorosas após Brumadinho e Mariana, incentivam tecnologias mais seguras e impactam diretamente as práticas de gestão de rejeitos.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="conclusoes" class="mb-12 pt-16 -mt-16">
+            <h2 class="text-2xl md:text-3xl font-semibold text-teal-600 mb-6 section-title">Conclusões e Perspectivas</h2>
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <p class="text-stone-700 leading-relaxed mb-4">
+                    A análise centenária (c. 1974-2075) da geração de rejeitos em Minas Gerais revela um desafio de proporções imensas. Estima-se que entre 11,8 a 17,5 bilhões de toneladas foram geradas nos últimos 50 anos, e projeta-se entre 6 a 16 bilhões de toneladas adicionais para os próximos 50 anos.
+                </p>
+                <p class="text-stone-700 leading-relaxed mb-4">
+                    O minério de ferro é o principal contribuinte histórico e futuro, mas a ascensão de minerais para transição energética (lítio, nióbio) diversificará o perfil dos rejeitos. A tendência de lavra de minérios com teores mais baixos pressiona para um aumento no volume de rejeitos.
+                </p>
+                <p class="text-stone-700 leading-relaxed mb-4">
+                    Apesar da pressão por produção, a inovação tecnológica, regulações mais rigorosas e o interesse na economia circular oferecem caminhos para mitigar impactos. Tecnologias como processamento a seco, disposição de rejeitos filtrados e reprocessamento são cada vez mais relevantes.
+                </p>
+                <h3 class="text-xl font-semibold text-teal-600 mt-6 mb-3">Recomendações Chave do Relatório:</h3>
+                <ul class="list-disc list-inside text-stone-700 space-y-2">
+                    <li>Aprimorar a coleta e transparência de dados sobre rejeitos.</li>
+                    <li>Investir estrategicamente em Pesquisa, Desenvolvimento e Inovação (PD&I) para redução e reaproveitamento.</li>
+                    <li>Fortalecer políticas e incentivos para a mineração circular.</li>
+                    <li>Promover planejamento territorial e ambiental integrado de longo prazo.</li>
+                    <li>Focar na gestão de rejeitos de "novos minerais" (lítio, nióbio, etc.).</li>
+                    <li>Incentivar o engajamento e a capacitação entre indústria, governo, academia e sociedade.</li>
+                </ul>
+                <p class="text-stone-700 leading-relaxed mt-4">
+                    A gestão de rejeitos é um desafio estratégico crucial para a sustentabilidade da mineração em Minas Gerais, exigindo uma abordagem proativa e integrada.
+                </p>
+            </div>
+        </section>
+
+        <section id="fontes" class="mb-12 pt-16 -mt-16">
+            <h2 class="text-2xl md:text-3xl font-semibold text-teal-600 mb-6 section-title">Fontes e Referências</h2>
+            <p class="text-stone-700 mb-8 leading-relaxed">
+                Esta seção lista as principais fontes e referências citadas no relatório "Geração Histórica e Projeções Futuras de Rejeitos de Mineração em Minas Gerais: Uma Análise Centenária (c. 1974-2075)". As referências são indicadas no corpo do relatório por números entre colchetes (ex: [1]).
+            </p>
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <ul class="space-y-4 text-stone-700">
+                    <li class="source-item"><strong>[1] Plano Nacional de Mineração 2050 (PNM 2050):</strong> Diversos cadernos, incluindo o Caderno 5 (Sustentabilidade), fornecendo contexto sobre práticas de mineração, tecnologias e planejamento de longo prazo.</li>
+                    <li class="source-item"><strong>[2] Secretaria de Estado de Meio Ambiente e Desenvolvimento Sustentável (SEMAD) de Minas Gerais:</strong> Dados da Declaração de Movimentação de Resíduos (DMR), especificamente o volume de 67,2 milhões de toneladas de rejeitos de beneficiamento de minério em 2022.</li>
+                    <li class="source-item"><strong>[3] Instituto de Pesquisa Econômica Aplicada (IPEA):</strong> Estudo de 2012 sobre a geração de resíduos sólidos na indústria extrativa mineral, reportando volumes de rejeitos para Minas Gerais em 2008 (101,5 Mt) e 2009 (123,1 Mt) e projeções nacionais.</li>
+                    <li class="source-item"><strong>[4] Agência Nacional de Mineração (ANM) / Departamento Nacional de Produção Mineral (DNPM):</strong> Anuários Minerais Brasileiros (AMB) e Anuários Minerais Estaduais (AME), como fontes primárias para estatísticas de produção mineral desde 1972.</li>
+                    <li class="source-item"><strong>[5] Agência Nacional de Mineração (ANM):</strong> Prévia do Anuário Mineral Brasileiro de 2022 (ano-base 2021), com dados de produção para minério de ferro, ouro e bauxita em Minas Gerais.</li>
+                    <li class="source-item"><strong>[6] Instituto Brasileiro de Mineração (IBRAM):</strong> Relatório "Informações sobre a Economia Mineral do Estado de Minas Gerais" (com dados até 2014), contextualizando a produção mineral do estado.</li>
+                    <li class="source-item"><strong>[7] Agência Nacional de Mineração (ANM):</strong> Documento de Análise de Impacto Regulatório (AIR) sobre Aproveitamento de Estéril e Rejeitos, com dados de rejeitos nacionais (2010-2019) e informações para estimar fatores de geração.</li>
+                    <li class="source-item"><strong>[8] Ministério de Minas e Energia (MME):</strong> "Perfil da Mineração de Bauxita", indicando fatores de geração de rejeitos para o beneficiamento de bauxita.</li>
+                    <li class="source-item"><strong>[9] Pesquisa acadêmica (Dissertação):</strong> Estudo sobre a caracterização tecnológica de rejeitos de minério de ferro para recuperação de finos no Quadrilátero Ferrífero.</li>
+                    <li class="source-item"><strong>[10] Plano Nacional de Mineração 2050 (PNM 2050):</strong> Projeções específicas para Minério de Ferro, incluindo demanda global, consumo interno e tendência de explotação de minérios de menor teor.</li>
+                    <li class="source-item"><strong>[11] Plano Nacional de Mineração 2050 (PNM 2050), Caderno 3:</strong> Focado em Minerais para a Transição Energética, com projeções para lítio e nióbio.</li>
+                    <li class="source-item"><strong>[12] Sul Americana de Metais (SAM):</strong> Estudo de Impacto Ambiental (EIA) do Projeto Bloco 8, detalhando a estimativa de geração de 1,51 bilhão de toneladas de rejeitos de minério de ferro.</li>
+                    <li class="source-item"><strong>[13] Samarco Mineração S.A.:</strong> Relatório de Impacto Ambiental (RIMA) do Projeto de Desenvolvimento de Eixo I (PDER Eixo I), com projeções de disposição de rejeito arenoso.</li>
+                    <li class="source-item"><strong>[15] Legislação e Normativas sobre Segurança de Barragens e dados da ANM:</strong> Inclui a Lei nº 12.334/2010 (Política Nacional de Segurança de Barragens) alterada pela Lei nº 14.066/2020, a Resolução ANM nº 95/2022, e informações da ANM sobre descaracterização de barragens e o Sistema Integrado de Gestão de Segurança de Barragens de Mineração (SIGBM).</li>
+                    <li class="source-item"><strong>[16] Iniciativas de Economia Circular da Vale S.A.:</strong> Exemplos como os projetos "Gelado", "Areia Sustentável" e a fábrica de blocos utilizando rejeitos.</li>
+                    <li class="source-item"><strong>[17] Legislação de Incentivo ao Aproveitamento de Rejeitos:</strong> Inclui a Lei nº 13.540/2017 e a Resolução ANM nº 85/2021, que oferecem incentivos para o reaproveitamento de rejeitos.</li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-800 text-stone-300 text-center p-6 mt-12">
+        <p>&copy; <span id="currentYear"></span> Visualização Interativa de Rejeitos de Mineração em MG. Baseado no Relatório "Geração Histórica e Projeções Futuras de Rejeitos de Mineração em Minas Gerais: Uma Análise Centenária (c. 1974-2075)".</p>
+    </footer>
+
+    <script>
+        const navToggle = document.getElementById('nav-toggle');
+        const navMenu = document.getElementById('nav-menu');
+        navToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('hidden');
+        });
+
+        document.querySelectorAll('#nav-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (!navMenu.classList.contains('md:flex')) { 
+                    navMenu.classList.add('hidden');
+                }
+            });
+        });
+        
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('nav ul li a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= (sectionTop - sectionHeight / 3)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active-nav-link');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active-nav-link');
+                }
+            });
+        });
+        
+        function formatLabel(str, maxLen = 16) {
+            if (str.length <= maxLen) return str;
+            let breakPoint = str.lastIndexOf(' ', maxLen);
+            if (breakPoint === -1 || breakPoint < maxLen / 2) breakPoint = maxLen;
+            
+            const lines = [];
+            let currentLine = '';
+            str.split(' ').forEach(word => {
+                if ((currentLine + word).length > maxLen) {
+                    lines.push(currentLine.trim());
+                    currentLine = '';
+                }
+                currentLine += word + ' ';
+            });
+            lines.push(currentLine.trim());
+            return lines.filter(line => line.length > 0);
+        }
+
+        const commonChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#4A5568'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0,0,0,0.7)',
+                    titleColor: '#FFFFFF',
+                    bodyColor: '#FFFFFF',
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                if (Array.isArray(context.raw)) { 
+                                     label += `${context.raw[0]} - ${context.raw[1]} Mt`;
+                                } else if (context.dataset.isPercentage) {
+                                     label += `${context.raw.toFixed(1)}%`;
+                                }
+                                 else {
+                                     label += `${context.parsed.y} Mt`;
+                                }
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#4A5568', 
+                        callback: function(value) {
+                            return value + ' Mt';
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#4A5568', 
+                        callback: function(value) {
+                           const label = this.getLabelForValue(value);
+                           return formatLabel(label, 10);
+                        }
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        };
+        
+        const commonPieChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                     labels: {
+                        color: '#4A5568' 
+                    }
+                },
+                tooltip: {
+                     backgroundColor: 'rgba(0,0,0,0.7)',
+                    titleColor: '#FFFFFF',
+                    bodyColor: '#FFFFFF',
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed !== null) {
+                                label += context.parsed.toFixed(1) + '%';
+                            }
+                            return label;
+                        }
+                    }
+                }
+            }
+        };
+
+        if (document.getElementById('historicalTailingsChart')) {
+            const historicalCtx = document.getElementById('historicalTailingsChart').getContext('2d');
+            new Chart(historicalCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['1974-1983', '1984-1993', '1994-2003', '2004-2013', '2014-2023'],
+                    datasets: [{
+                        label: 'Estimativa de Rejeitos (Mín-Máx)',
+                        data: [
+                            [1500, 2500], 
+                            [2000, 3000], 
+                            [2500, 3500], 
+                            [3000, 4500], 
+                            [2800, 4000]
+                        ],
+                        backgroundColor: 'rgba(13, 148, 136, 0.6)', 
+                        borderColor: 'rgba(13, 148, 136, 1)', 
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    scales: {
+                        ...commonChartOptions.scales,
+                        y: {
+                            ...commonChartOptions.scales.y,
+                             title: {
+                                display: true,
+                                text: 'Milhões de Toneladas (Mt)',
+                                color: '#4A5568'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        if (document.getElementById('historicalMineralContributionChart')) {
+            const historicalMineralCtx = document.getElementById('historicalMineralContributionChart').getContext('2d');
+            new Chart(historicalMineralCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Minério de Ferro', 'Ouro', 'Bauxita', 'Outros Minerais'],
+                    datasets: [{
+                        label: 'Contribuição Mineral Histórica (%)',
+                        data: [79.86, 3.55, 1.57, 15.02],
+                        backgroundColor: [
+                            'rgba(13, 148, 136, 0.7)', 
+                            'rgba(245, 158, 11, 0.7)',
+                            'rgba(107, 114, 128, 0.7)',
+                            'rgba(99, 102, 241, 0.7)'  
+                        ],
+                        borderColor: [
+                            'rgba(13, 148, 136, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(107, 114, 128, 1)',
+                            'rgba(99, 102, 241, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: commonPieChartOptions
+            });
+        }
+
+        if (document.getElementById('futureTailingsChart')) {
+            const futureCtx = document.getElementById('futureTailingsChart').getContext('2d');
+            new Chart(futureCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Cenário Tendencial', 'Cenário Alta Demanda', 'Cenário Mitigação Forte'],
+                    datasets: [{
+                        label: 'Projeção Total de Rejeitos 2025-2075 (Mín-Máx)',
+                        data: [
+                            [7500, 12000], 
+                            [11000, 16500],
+                            [4500, 7500]  
+                        ],
+                        backgroundColor: [
+                            'rgba(13, 148, 136, 0.6)', 
+                            'rgba(245, 158, 11, 0.6)', 
+                            'rgba(59, 130, 246, 0.6)'  
+                        ],
+                        borderColor: [
+                            'rgba(13, 148, 136, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(59, 130, 246, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                     scales: {
+                        ...commonChartOptions.scales,
+                        y: {
+                            ...commonChartOptions.scales.y,
+                             title: {
+                                display: true,
+                                text: 'Bilhões de Toneladas (Gt) - Exibido como Mt',
+                                color: '#4A5568'
+                            },
+                            callback: function(value) { 
+                                return value + ' Mt';
+                            }
+                        },
+                        x: {
+                           ...commonChartOptions.scales.x,
+                            ticks: {
+                                ...commonChartOptions.scales.x.ticks,
+                                 callback: function(value) { 
+                                    const label = this.getLabelForValue(value);
+                                    return formatLabel(label, 12); 
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        tooltip: {
+                            ...commonChartOptions.plugins.tooltip,
+                            callbacks: {
+                                 label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (Array.isArray(context.raw)) {
+                                        label += `${context.raw[0]/1000} - ${context.raw[1]/1000} Gt`; 
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
